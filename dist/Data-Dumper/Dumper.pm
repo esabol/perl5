@@ -18,6 +18,7 @@ use 5.008_001;
 require Exporter;
 
 use constant IS_PRE_516_PERL => $] < 5.016;
+use constant SUPPORTS_CORE_BOOLS => defined &builtin::is_bool;
 
 use Carp ();
 
@@ -29,7 +30,7 @@ our ( $Indent, $Trailingcomma, $Purity, $Pad, $Varname, $Useqq, $Terse, $Freezer
 our ( @ISA, @EXPORT, @EXPORT_OK, $VERSION );
 
 BEGIN {
-    $VERSION = '2.184'; # Don't forget to set version and release
+    $VERSION = '2.185'; # Don't forget to set version and release
                         # date in POD below!
 
     @ISA = qw(Exporter);
@@ -550,6 +551,12 @@ sub _dump {
     }
     elsif (!defined($val)) {
       $out .= "undef";
+    }
+    elsif (SUPPORTS_CORE_BOOLS && do {
+      BEGIN { SUPPORTS_CORE_BOOLS and warnings->unimport("experimental::builtin") }
+      builtin::is_bool($val)
+    }) {
+      $out .= $val ? '!!1' : '!!0';
     }
     # This calls the XSUB _vstring (if the XS code is loaded). I'm not *sure* if
     # if belongs in the "Pure Perl" implementation. It sort of depends on what
@@ -1448,7 +1455,7 @@ modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-Version 2.184
+Version 2.185
 
 =head1 SEE ALSO
 
